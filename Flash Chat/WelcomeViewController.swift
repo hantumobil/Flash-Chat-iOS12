@@ -22,4 +22,7 @@ class WelcomeViewController: UIViewController {
         super.didReceiveMemoryWarning()
     }
     
+    @IBAction func logInPressed(_ sender: UIButton) {
+        performSegue(withIdentifier: "toLogin", sender: self)
+    }
 }
