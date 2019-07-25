@@ -14,6 +14,7 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     
     // Declare instance variables here
+    var messages : [Message] = [Message]()
 
     
     // We've pre-linked the IBOutlets
@@ -30,12 +31,9 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         //TODO: Set yourself as the delegate and datasource here:
         messageTableView.delegate = self
         messageTableView.dataSource = self
-        messageTextfield.delegate = self
-        
-        
-        //TODO: Set yourself as the delegate of the text field here:
 
-        
+        //TODO: Set yourself as the delegate of the text field here:
+        messageTextfield.delegate = self
         
         //TODO: Set the tapGesture here:
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(tableViewTapped))
@@ -45,37 +43,34 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         messageTableView.register(UINib(nibName: "MessageCell", bundle: nil), forCellReuseIdentifier: "customMessageCell")
        
         configureTableView()
+        retrieveMessage()
     }
 
     ///////////////////////////////////////////
     
     //MARK: - TableView DataSource Methods
     
-    
-    
     //TODO: Declare cellForRowAtIndexPath here:
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: "customMessageCell", for: indexPath) as! CustomMessageCell
-        
-        let messages = ["Hello World", "Hello Table Hello TableHello TableHello TableHello TableHello TableHello TableHello TableHello TableHello Table", "Hello Row"]
-        
-        cell.messageBody.text = messages[indexPath.row]
+                
+        cell.messageBody.text = messages[indexPath.row].messageBody
+        cell.senderUsername.text = messages[indexPath.row].sender
+        cell.avatarImageView.image = UIImage(named: "egg")
         
         return cell
     }
     
-    
     //TODO: Declare numberOfRowsInSection here:
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        return messages.count
     }
-    
     
     //TODO: Declare tableViewTapped here:
     @objc func tableViewTapped() {
         messageTextfield.endEditing(true)
     }
-    
     
     //TODO: Declare configureTableView here:
     func configureTableView() {
@@ -88,9 +83,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     
     //MARK:- TextField Delegate Methods
     
-    
-
-    
     //TODO: Declare textFieldDidBeginEditing here:
     func textFieldDidBeginEditing(_ textField: UITextField) {
         
@@ -100,8 +92,6 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         }
         
     }
-    
-    
     
     //TODO: Declare textFieldDidEndEditing here:
     func textFieldDidEndEditing(_ textField: UITextField) {
@@ -113,13 +103,10 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
         
     }
 
-    
     ///////////////////////////////////////////
     
     
     //MARK: - Send & Recieve from Firebase
-    
-    
     
     
     
@@ -166,12 +153,26 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     //TODO: Create the retrieveMessages method here:
+    func retrieveMessage() {
+        let messageDB = Database.database().reference().child("messages")
+        messageDB.observe(.childAdded, with: {
+            snapshot in
+            
+            let snapshotValue = snapshot.value as! Dictionary<String, String>
+            
+            let newMessage = Message()
+            
+            newMessage.messageBody = snapshotValue["MessageBody"]!
+            newMessage.sender = snapshotValue["Sender"]!
+            
+            self.messages.append(newMessage)
+            self.configureTableView()
+            self.messageTableView.reloadData()
+        })
+    }
     
     
 
-    
-    
-    
     @IBAction func logOutPressed(_ sender: AnyObject) {
         
         //TODO: Log out the user and send them back to WelcomeViewController
@@ -183,7 +184,5 @@ class ChatViewController: UIViewController, UITableViewDelegate, UITableViewData
             print("error, there is a problem signing out")
         }
     }
-    
-
 
 }
